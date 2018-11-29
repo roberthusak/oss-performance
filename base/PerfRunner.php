@@ -36,6 +36,9 @@ final class PerfRunner {
     if ($options->hhvm) {
       $php_engine = new HHVMDaemon($options);
     }
+    if ($options->peachpie) {
+      $php_engine = new PeachpieDaemon($options);
+    }
     invariant($php_engine !== null, 'failed to initialize a PHP engine');
 
     return self::RunWithOptionsAndEngine($options, $php_engine);
@@ -72,11 +75,13 @@ final class PerfRunner {
       self::PrintProgress('There is no setUpTest');
     }
 
-    self::PrintProgress('Starting Nginx');
-    $nginx = new NginxDaemon($options, $target);
-    $nginx->start();
-    Process::sleepSeconds($options->delayNginxStartup);
-    invariant($nginx->isRunning(), 'Failed to start nginx');
+    if ($php_engine->useNginx()) {
+      self::PrintProgress('Starting Nginx');
+      $nginx = new NginxDaemon($options, $target);
+      $nginx->start();
+      Process::sleepSeconds($options->delayNginxStartup);
+      invariant($nginx->isRunning(), 'Failed to start nginx');
+    }
 
     self::PrintProgress('Starting PHP Engine');
     $php_engine->start();

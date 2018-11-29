@@ -14,4 +14,6 @@ abstract class PHPEngine extends Process {
 
   public function needsRetranslatePause(): bool { return false; }
   public function queueEmpty(): bool { return true; }
+
+  public function useNginx(): bool { return true; }
 }

@@ -19,6 +19,7 @@ final class PerfOptions {
   //
   public ?string $php5;
   public ?string $hhvm;
+  public ?string $peachpie;
 
   // When running with php, this enables fpm cgi.
   public bool $fpm = false;
@@ -136,6 +137,7 @@ final class PerfOptions {
       'php:', // Uses FPM by default (see no-fpm).
       'php5:', // Uses CGI.  Legacy option.
       'hhvm:',
+      'peachpie:',
       'no-fpm',
       'siege:',
       'nginx:',
@@ -228,6 +230,7 @@ final class PerfOptions {
       $this->php5 = $php;
     }
     $this->hhvm = hphp_array_idx($o, 'hhvm', null);
+    $this->peachpie = hphp_array_idx($o, 'peachpie', null);
 
     $this->setUpTest = hphp_array_idx($o, 'setUpTest', null);
     $this->tearDownTest = hphp_array_idx($o, 'tearDownTest', null);
@@ -359,13 +362,13 @@ final class PerfOptions {
   }
 
   public function validate() {
-    if ($this->php5) {
+    if ($this->php5 || $this->peachpie) {
       $this->precompile = false;
       $this->proxygen = false;
       $this->jit = false;
       $this->filecache = false;
     }
-    if ($this->hhvm) {
+    if ($this->hhvm || $this->peachpie) {
       $this->fpm = false;
     }
     if ($this->notBenchmarkingArgs && !$this->notBenchmarking) {
@@ -396,19 +399,21 @@ final class PerfOptions {
 	  'Invalid ssh credentials: ' . $this->remoteSiege);
       }
     }
-    if ($this->php5 === null && $this->hhvm === null) {
+    if ($this->php5 === null && $this->hhvm === null && $this->peachpie === null) {
       invariant_violation(
         'Either --php5=/path/to/php-cgi or --php=/path/to/php-fpm or '.
-        '--hhvm=/path/to/hhvm must be specified',
+        '--hhvm=/path/to/hhvm or --peachpie must be specified',
       );
     }
-    $engine = $this->php5 !== null ? $this->php5 : $this->hhvm;
-    invariant(
-      shell_exec('which '.escapeshellarg($engine)) !== null ||
-      is_executable($engine),
-      'Invalid engine: %s',
-      $engine,
-    );
+    if (!$this->peachpie) {
+      $engine = $this->php5 !== null ? $this->php5 : $this->hhvm;
+      invariant(
+        shell_exec('which '.escapeshellarg($engine)) !== null ||
+        is_executable($engine),
+        'Invalid engine: %s',
+        $engine,
+      );
+    }
     invariant(
       shell_exec('which '.escapeshellarg($this->siege)) !== null ||
       is_executable($this->siege),
