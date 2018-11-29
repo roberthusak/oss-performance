@@ -1,6 +1,7 @@
 *.pid
 *.swp
 vendor/
+.vagrant/
 *.out
 core
 core.*
