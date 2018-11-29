@@ -6,9 +6,15 @@ sudo apt-get -y install software-properties-common build-essential
 sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0x5a16e7281be7a449
 sudo add-apt-repository "deb http://dl.hhvm.com/ubuntu xenial main"
 sudo apt-get update
-sudo apt-get -y install hhvm
+sudo apt-get -y --allow-unauthenticated install hhvm
 sudo apt-get -y install php7.0 php7.0-cgi php7.0-fpm
 sudo apt-get -y install php7.0-mysql php7.0-curl php7.0-gd php7.0-intl php-pear php-imagick php7.0-imap php7.0-mcrypt php-memcache  php7.0-pspell php7.0-recode php7.0-sqlite3 php7.0-tidy php7.0-xmlrpc php7.0-xsl php7.0-mbstring php-gettext
+
+wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+sudo apt-get install apt-transport-https
+sudo apt-get update
+sudo apt-get install dotnet-sdk-2.1
 
 git clone https://github.com/JoeDog/siege.git
 cd siege
