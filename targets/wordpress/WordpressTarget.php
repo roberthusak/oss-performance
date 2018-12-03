@@ -28,6 +28,7 @@ final class WordpressTarget extends PerfTarget {
     }
 
     copy(__DIR__.'/wp-config.php', $this->getSourceRoot().'/wp-config.php');
+    shell_exec('cp -r '. __DIR__ .'/fixes/* '. $this->getSourceRoot() .'/');
 
     $file = $this->getSourceRoot().'/wp-config.php';
     $file_contents = file_get_contents($file);
