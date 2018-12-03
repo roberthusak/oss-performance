@@ -46,7 +46,6 @@ final class PeachpieDaemon extends PHPEngine {
     // Check that it's started
     for ($i = 0; $i < 10; ++$i) {
       Process::sleepSeconds($this->options->delayCheckHealth);
-      print_r(proc_get_status($this->process));
       $resp = $this->request('', true);
       if ($resp) {
         return;
