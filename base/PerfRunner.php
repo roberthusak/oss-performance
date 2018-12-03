@@ -165,8 +165,10 @@ final class PerfRunner {
       sleep(10);
     }
 
-    self::PrintProgress('Clearing nginx access.log');
-    $nginx->clearAccessLog();
+    if ($php_engine->useNginx()) {
+      self::PrintProgress('Clearing nginx access.log');
+      $nginx->clearAccessLog();
+    }
 
     if ($options->waitAfterWarmup) {
       self::PrintProgress('Finished warmup. Press Enter to continue the benchmark');
@@ -206,12 +208,14 @@ final class PerfRunner {
       }
     }
 
-    $nginx_stats = $nginx->collectStats();
-    foreach ($nginx_stats as $page => $stats) {
-      if ($combined_stats->containsKey($page)) {
-        $combined_stats[$page]->setAll($stats);
-      } else {
-        $combined_stats[$page] = $stats;
+    if ($php_engine->useNginx()) {
+      $nginx_stats = $nginx->collectStats();
+      foreach ($nginx_stats as $page => $stats) {
+        if ($combined_stats->containsKey($page)) {
+          $combined_stats[$page]->setAll($stats);
+        } else {
+          $combined_stats[$page] = $stats;
+        }
       }
     }
 

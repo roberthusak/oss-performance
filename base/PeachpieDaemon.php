@@ -7,6 +7,7 @@ final class PeachpieDaemon extends PHPEngine {
   public function __construct(private PerfOptions $opts) {
     $this->options = $opts;
     $this->target = $opts->getTarget();
+    $this->suppress_stdout = true;
     parent::__construct("");
   }
 
@@ -19,37 +20,50 @@ final class PeachpieDaemon extends PHPEngine {
 
   <<__Override>>
   public function getExecutablePath(): string {
-    return "dotnet";
+    // To ensure the correct PID is retrieved to close the process later, see http://php.net/manual/en/function.proc-get-status.php#93382
+    return "exec";
   }
 
   <<__Override>>
-  protected function getArguments(): Vector<string> { return Vector {"run", "-p", "Server", "-c", "Release"}; }
+  protected function getArguments(): Vector<string> { return Vector {"dotnet", $this->options->tempDir ."/Server/bin/Release/netcoreapp2.1/Server.dll"}; }
 
   <<__Override>>
   public function start(): void {
     $sourceRoot = $this->target->getSourceRoot();
     $tempDir = $this->options->tempDir;
-    Utils::RunCommand(Vector{ "cd", $tempDir});
-    Utils::RunCommand(Vector{ "dotnet ", "new", "web", "-lang", "PHP", "--name", "Benchmark"});
-    Utils::RunCommand(Vector{ "cp", "-r", $sourceRoot ."/*", "./Benchmark/Website/"});
-    Utils::RunCommand(Vector{ "sed", "-i", "'s/5004/". PerfSettings::HttpPort() ."/g'", "./Benchmark/Server/Program.cs"});
-    Utils::RunCommand(Vector{ "cd", "./Benchmark"});
-
+    // Create a new web project, insert the PHP files, fix the port and build it
+    shell_exec("dotnet new web -lang PHP --name Benchmark --output {$tempDir}");
+    shell_exec("cp -r {$sourceRoot}/* {$tempDir}/Website/");
+    shell_exec("sed -i s/5004/". PerfSettings::HttpPort() ."/g {$tempDir}/Server/Program.cs");
+    shell_exec("dotnet build -c Release {$tempDir}/Benchmark.sln > {$tempDir}/build.log");
+    // Run Kestrel
     parent::startWorker(
       $this->options->daemonOutputFileName('peachpie'),
       $this->options->delayProcessLaunch,
       $this->options->traceSubProcess,
     );
     invariant($this->isRunning(), 'Failed to start Peachpie');
-    // TODO: Health check
+    // Check that it's started
+    for ($i = 0; $i < 10; ++$i) {
+      Process::sleepSeconds($this->options->delayCheckHealth);
+      print_r(proc_get_status($this->process));
+      $resp = $this->request('', true);
+      if ($resp) {
+        return;
+      }
+    }
+    // Not awake until 10 attempts -> cancel
+    $this->stop();
   }
 
-  <<__Override>>
-  public function stop(): void {
-    // TODO
-  }
-
-  public function writeStats(): void {
-    // TODO
+  protected function request(
+    string $path,
+    bool $allowFailures = true,
+  ) {
+    $url = 'http://localhost:'.PerfSettings::HttpPort().$path;
+    $ctx = stream_context_create(
+      ['http' => ['timeout' => $this->options->maxdelayAdminRequest]],
+    );
+    return file_get_contents($url, /* include path = */ false, $ctx);
   }
 }
