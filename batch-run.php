@@ -12,6 +12,7 @@ enum BatchRuntimeType : string {
   HHVM = 'hhvm';
   PHP_SRC = 'php-src';
   PHP_FPM = 'php-fpm';
+  PEACHPIE = 'peachpie';
 }
 ;
 
@@ -162,6 +163,9 @@ function batch_get_single_run(
       $options->php5 = $runtime['bin'];
       $options->fpm = true;
       break;
+    case BatchRuntimeType::PEACHPIE:
+      $options->peachpie = $runtime['bin'];
+      break;
   }
 
   foreach ($target['settings'] as $name => $value) {
@@ -207,7 +211,30 @@ function batch_get_all_runs(
   return $options;
 }
 
+function batch_nunit_xml_encode(Map $results, DateTime $startTime, DateTime $endTime): string {
+  $root = new SimpleXMLElement("<test-run></test-run>");
+  $root->addAttribute('fullname', 'BenchmarkAvgResponse');
+  $root->addAttribute('start-time', $startTime->format(DATE_ATOM));
+  $root->addAttribute('end-time', $endTime->format(DATE_ATOM));
+  $suite = $root->addChild('test-suite');
+  $suite->addAttribute('type', 'Assembly');
+
+  foreach ($results as $target => $target_runs) {
+    foreach ($target_runs as $engine => $run) {   // Expects only one engine at a time now
+      $test = $suite->addChild('test-case');
+      $test->addAttribute('name', $target);
+      $test->addAttribute('fullname', $target);
+      $result = $run["Combined"]["Siege failed requests"] > 0 ? "Failed" : "Passed";
+      $test->addAttribute('result', $result);
+      $test->addAttribute('duration', $run["Combined"]["Siege wall sec"]);
+    }
+  }
+
+  return $root->asXML();
+}
+
 function batch_main(Vector<string> $argv): void {
+  $startTime = new DateTime();
   $json_config = file_get_contents('php://stdin');
 
   $targets = batch_get_targets($json_config);
@@ -227,6 +254,11 @@ function batch_main(Vector<string> $argv): void {
   $json = json_encode($results, JSON_PRETTY_PRINT)."\n";
   print ($json);
   file_put_contents('results'.uniqid().'.json', $json);
+
+  // TODO: Make configurable
+  $xml = batch_nunit_xml_encode($results, $startTime, new DateTime());
+  print $xml;
+  file_put_contents('results.xml', $xml);
 }
 
 require_once ('base/cli-init.php');
