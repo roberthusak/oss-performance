@@ -13,8 +13,7 @@
     "username": "root",
     "password": "root",
     "options": [
-      "siege=./tools/siege",
-      "i-am-not-benchmarking"
+      "siege=./tools/siege"
     ]
   }
 }
