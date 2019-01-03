@@ -32,9 +32,8 @@ final class PeachpieDaemon extends PHPEngine {
     $sourceRoot = $this->target->getSourceRoot();
     $tempDir = $this->options->tempDir;
     $confDir = OSS_PERFORMANCE_ROOT ."/conf";
-    // Create a new web project, patch it, insert the PHP files, fix the port and build it
-    shell_exec("dotnet new web -lang PHP --name Benchmark --output {$tempDir}");
-    shell_exec("patch -d {$tempDir} -p1 < {$confDir}/PeachpieWebChanges.diff");
+    // Create a new web project in temporary folder, insert the PHP files, fix the port and build it
+    shell_exec("cp -r {$confDir}/peachpie/* {$tempDir}/")
     shell_exec("cp -r {$sourceRoot}/* {$tempDir}/Website/");
     shell_exec("sed -i s/5004/". PerfSettings::HttpPort() ."/g {$tempDir}/Server/Program.cs");
     shell_exec("dotnet build -c Release {$tempDir}/Benchmark.sln > {$tempDir}/build.log");
