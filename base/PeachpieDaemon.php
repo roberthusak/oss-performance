@@ -7,7 +7,7 @@ final class PeachpieDaemon extends PHPEngine {
   public function __construct(private PerfOptions $opts) {
     $this->options = $opts;
     $this->target = $opts->getTarget();
-    $this->suppress_stdout = true;
+    $this->suppress_stdout = false;
     parent::__construct("");
   }
 
