@@ -221,9 +221,10 @@ function batch_nunit_xml_encode(Map $results, DateTime $startTime, DateTime $end
 
   foreach ($results as $target => $target_runs) {
     foreach ($target_runs as $engine => $run) {   // Expects only one engine at a time now
+      $name = "{$engine}-{$target}";
       $test = $suite->addChild('test-case');
-      $test->addAttribute('name', $target);
-      $test->addAttribute('fullname', $target);
+      $test->addAttribute('name', $name);
+      $test->addAttribute('fullname', $name);
       $result = $run["Combined"]["Siege failed requests"] > 0 ? "Failed" : "Passed";
       $test->addAttribute('result', $result);
       $test->addAttribute('duration', $run["Combined"]["Siege wall sec"]);
