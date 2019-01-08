@@ -45,6 +45,7 @@ final class PeachpieDaemon extends PHPEngine {
     );
     invariant($this->isRunning(), 'Failed to start Peachpie');
     // Check that it's started
+    Process::sleepSeconds(10.0);
     for ($i = 0; $i < 10; ++$i) {
       Process::sleepSeconds($this->options->delayCheckHealth);
       $resp = $this->request('', true);
