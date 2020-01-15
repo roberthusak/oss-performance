@@ -5,9 +5,12 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
+  <!-- PeachpieVersion -->
+  <Import Project="Version.props" Sdk="Peachpie.NET.Sdk" />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Peachpie.AspNetCore.Web" Version="0.9.28" />
+    <PackageReference Include="Peachpie.AspNetCore.Web" Version="$(PeachpieVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Buffering" Version="0.2.2" />
   </ItemGroup>
 
