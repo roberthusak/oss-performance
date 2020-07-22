@@ -25,7 +25,7 @@ final class PeachpieDaemon extends PHPEngine {
   }
 
   <<__Override>>
-  protected function getArguments(): Vector<string> { return Vector {"dotnet", $this->options->tempDir ."/Server/bin/Release/netcoreapp3.0/Server.dll"}; }
+  protected function getArguments(): Vector<string> { return Vector {"dotnet", $this->options->tempDir ."/Server/bin/Release/netcoreapp3.1/Server.dll"}; }
 
   <<__Override>>
   public function start(): void {
