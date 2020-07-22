@@ -36,7 +36,7 @@ final class PeachpieDaemon extends PHPEngine {
     shell_exec("cp -r {$confDir}/peachpie/* {$tempDir}/");
     shell_exec("cp -r {$sourceRoot}/* {$tempDir}/Website/");
     shell_exec("sed -i s/5004/". PerfSettings::HttpPort() ."/g {$tempDir}/Server/Program.cs");
-    shell_exec("dotnet build -c Release {$tempDir}/Benchmark.sln > {$tempDir}/build.log");
+    shell_exec("dotnet build -c Release {$tempDir}/Benchmark.sln > build.log");
     // Run Kestrel
     parent::startWorker(
       $this->options->daemonOutputFileName('peachpie'),
